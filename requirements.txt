@@ -1,0 +1,7 @@
+boto3
+pandas
+numpy
+streamlit-audiorecorder
+datetime
+pdfkit
+streamlit-quill
