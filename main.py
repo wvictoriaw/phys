@@ -71,7 +71,7 @@ with tab1:
                     st.info('Upload in progress...')
                 
                 cli.put_object(
-                Bucket='mdc-transcribe',
+                Bucket='phys-transcribe',
                 Key=f'{filename}.wav',
                 Body=buffer)
 
@@ -103,7 +103,7 @@ with tab1:
     st.divider()
     st.subheader("Summarise a Recording", anchor=False)
 
-    files = [x['Key'] for x in cli.list_objects_v2(Bucket='mdc-transcribe')['Contents']]
+    files = [x['Key'] for x in cli.list_objects_v2(Bucket='phys-transcribe')['Contents']]
     files.sort(reverse=True)
     files = files[:5]
 
@@ -120,9 +120,9 @@ with tab1:
             response = transcli.start_medical_scribe_job(
                 MedicalScribeJobName=job_name,
                 Media={
-                    'MediaFileUri': f's3://mdc-transcribe/{select}'
+                    'MediaFileUri': f's3://phys-transcribe/{select}'
                 },
-                OutputBucketName='mdc-output',
+                OutputBucketName='phys-output',
                 DataAccessRoleArn='arn:aws:iam::932424431774:role/transcriber',
                 Settings={
                     'ShowSpeakerLabels': True,
@@ -143,7 +143,7 @@ with tab1:
 
 with tab2:
     
-    scribes = [x['Prefix'][:-1] for x in cli.list_objects_v2(Bucket='mdc-output', Delimiter="/")['CommonPrefixes']]
+    scribes = [x['Prefix'][:-1] for x in cli.list_objects_v2(Bucket='phys-output', Delimiter="/")['CommonPrefixes']]
     scribes.sort(reverse=True)
     summary = st.selectbox("Select a summary to view",scribes)
 
@@ -155,7 +155,7 @@ with tab2:
         load = st.empty()
         with load.container():
             st.info("Loading...")
-        scr = cli.get_object(Bucket='mdc-output', Key=summary+'/summary.json')['Body'].read().decode('utf-8')
+        scr = cli.get_object(Bucket='phys-output', Key=summary+'/summary.json')['Body'].read().decode('utf-8')
         json_content = json.loads(scr)
         sections = json_content['ClinicalDocumentation']['Sections']
 
@@ -184,11 +184,11 @@ with tab2:
 
         edit_or_create = st.radio("edit_or_create",["Generate a new report", "Edit an existing report"], label_visibility = "hidden")
         if edit_or_create == "Generate a new report":
-            scribes = [x['Prefix'][:-1] for x in cli.list_objects_v2(Bucket='mdc-output', Delimiter="/")['CommonPrefixes']]
+            scribes = [x['Prefix'][:-1] for x in cli.list_objects_v2(Bucket='phys-output', Delimiter="/")['CommonPrefixes']]
             scribes.sort(reverse=True)
             st.session_state.retrieve_doc = st.selectbox("Select Scribe:", scribes)
         else:
-            scribes = [x['Key'] for x in cli.list_objects_v2(Bucket='mdc-reports')['Contents']]
+            scribes = [x['Key'] for x in cli.list_objects_v2(Bucket='phys-reports')['Contents']]
             scribes.sort(reverse=True)
             st.session_state.retrieve_doc = st.selectbox("Select Report:", scribes)
         load_report = st.button("Load Report")
@@ -199,7 +199,7 @@ with tab2:
 
         if load_report:
             if edit_or_create == "Generate a new report":
-                scr = cli.get_object(Bucket='mdc-output', Key=st.session_state.retrieve_doc+'/summary.json')['Body'].read().decode('utf-8')
+                scr = cli.get_object(Bucket='phys-output', Key=st.session_state.retrieve_doc+'/summary.json')['Body'].read().decode('utf-8')
                 json_content = json.loads(scr)
                 sections = json_content['ClinicalDocumentation']['Sections']
             
@@ -221,7 +221,7 @@ with tab2:
                     st.session_state.report = txt
                     st.session_state.report_name = summary[:10]
             else:
-                st.session_state.report = cli.get_object(Bucket="mdc-reports", Key=st.session_state.retrieve_doc)['Body'].read().decode('utf-8')
+                st.session_state.report = cli.get_object(Bucket="phys-reports", Key=st.session_state.retrieve_doc)['Body'].read().decode('utf-8')
                 st.session_state.report_name = st.session_state.retrieve_doc
                 
         
@@ -242,7 +242,7 @@ with tab2:
                         st.session_state.report = output
                         st.session_state.report_name = report_name
 
-                        cli.put_object(Bucket='mdc-reports', Key=f'{st.session_state.report_name}.txt', Body=st.session_state.report)
+                        cli.put_object(Bucket='phys-reports', Key=f'{st.session_state.report_name}.txt', Body=st.session_state.report)
 
                         st.success("Report saved! :tada:")
 
@@ -252,12 +252,12 @@ with tab2:
         st.subheader("Download a Report", anchor=None)
 
         with st.form("download"):
-            scribes = [x['Key'] for x in cli.list_objects_v2(Bucket='mdc-reports')['Contents']]
+            scribes = [x['Key'] for x in cli.list_objects_v2(Bucket='phys-reports')['Contents']]
             scribes.sort(reverse=True)
             st.session_state.download_name = st.selectbox("Select Report:", scribes)
 
             if st.form_submit_button("Prepare Download"):
-                st.session_state.download_report = cli.get_object(Bucket="mdc-reports", Key=st.session_state.download_name)['Body'].read().decode('utf-8')
+                st.session_state.download_report = cli.get_object(Bucket="phys-reports", Key=st.session_state.download_name)['Body'].read().decode('utf-8')
                 st.session_state.download_ready = True
 
         
