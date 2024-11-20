@@ -193,6 +193,8 @@ with tab2:
             st.session_state.retrieve_doc = st.selectbox("Select Report:", scribes)
         load_report = st.button("Load Report")
 
+        st.write("**OR**")
+
         if st.button("Create New Blank Report"):
             st.session_state.report = "- NEW REPORT -"
             st.session_state.report_name = ""
@@ -262,9 +264,8 @@ with tab2:
 
         
         html = f'''
-        <div style='width:100px;height:auto;position:absolute;right:0;top:-20px'><img src='https://static.tumblr.com/c1oapfr/8nTs6bnlb/logo_watermark.png' width='100%'></div>
     <h1 style='color:#005a97; font-family:sans-serif;margin:0;padding:0;'>Consultation Summary</h1>
-<p style='color:#879198; font-family:sans-serif;font-size:12pt;margin:0;padding:2px;'><b>Doctor's Report</b></p>
+<p style='color:#879198; font-family:sans-serif;font-size:12pt;margin:0;padding:2px;'><b>Physician's Report</b></p>
 <p style='font-family:sans-serif;color:#999;font-size:11pt;'>Report: {st.session_state.download_name[:-4]}</p>
 <div style="font-family:sans-serif;">{st.session_state.download_report}</div>
 '''
